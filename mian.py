@@ -14,11 +14,11 @@ dp = Dispatcher(bot, storage = storage)
 
 id_admin_data = ['340371976', '453800399', '452083843']
 is_admin = False
-is_reg = False
+# is_reg = False
 ID = 0
 
 
-con = sq.connect("test.db")
+con = sq.connect("test2.db")
 cur = con.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS photos (
                     url TEXT
@@ -26,13 +26,13 @@ cur.execute("""CREATE TABLE IF NOT EXISTS photos (
 cur.execute("""CREATE TABLE IF NOT EXISTS photos_akcii (
                     url TEXT
                     )""")
-cur.execute("""CREATE TABLE IF NOT EXISTS users (
-                    name TEXT, 
-                    surname TEXT, 
-                    number INTEGER,
-                    id INTEGER, 
-                    balance INTEGER
-                    )""")
+# cur.execute("""CREATE TABLE IF NOT EXISTS users (
+#                     name TEXT,
+#                     surname TEXT,
+#                     number INTEGER,
+#                     id INTEGER,
+#                     balance INTEGER
+#                     )""")
 cur.execute("""CREATE TABLE IF NOT EXISTS caption_tur (
                     caption TEXT
                     )""")
@@ -67,6 +67,30 @@ if (len(res_all)==0):
     cur.execute("INSERT INTO start_media_info(media, type) VALUES ('AgACAgIAAxkBAAIMAWTKUoFLx39nip1CeNrEMjTsMJNhAAJAyTEb8CRQSgNeqXlK_avRAQADAgADeQADLwQ', 0)")
     con.commit()
 
+cur.execute("SELECT * FROM photos")
+res_all = cur.fetchall()
+if (len(res_all)==0):
+    cur.execute("INSERT INTO photos(url) VALUES ('AgACAgIAAxkBAAIMAWTKUoFLx39nip1CeNrEMjTsMJNhAAJAyTEb8CRQSgNeqXlK_avRAQADAgADeQADLwQ')")
+    con.commit()
+
+cur.execute("SELECT * FROM photos_akcii")
+res_all = cur.fetchall()
+if (len(res_all)==0):
+    cur.execute("INSERT INTO photos_akcii(url) VALUES ('AgACAgIAAxkBAAIMAWTKUoFLx39nip1CeNrEMjTsMJNhAAJAyTEb8CRQSgNeqXlK_avRAQADAgADeQADLwQ')")
+    con.commit()
+
+cur.execute("SELECT * FROM caption_akcii")
+res_all = cur.fetchall()
+if (len(res_all)==0):
+    cur.execute("INSERT INTO caption_akcii(caption) VALUES ('описание')")
+    con.commit()
+
+cur.execute("SELECT * FROM caption_tur")
+res_all = cur.fetchall()
+if (len(res_all)==0):
+    cur.execute("INSERT INTO caption_tur(caption) VALUES ('описание')")
+    con.commit()
+
 
 
 def create_ikb(is_admin, ID):
@@ -82,13 +106,13 @@ def create_ikb(is_admin, ID):
             start_menu_buttons[f"Клуб {i}"] = f'Клуб {i}'
         for key, value in start_menu_buttons.items():
             ikb.add(InlineKeyboardButton(text=key, callback_data=value))
-    kb5 = InlineKeyboardButton(text="Мой баланс", callback_data="Мой баланс")
-    ikb.add(kb5)
-    cur.execute("SELECT id FROM users WHERE id = ?", (ID,))
-    result_reg = cur.fetchone()
-    if (result_reg == None):
-        kb6 = InlineKeyboardButton(text = "Зарегистрироваться", callback_data="Зарегистрироваться")
-        ikb.add(kb6)
+    # kb5 = InlineKeyboardButton(text="Мой баланс", callback_data="Мой баланс")
+    # ikb.add(kb5)
+    # cur.execute("SELECT id FROM users WHERE id = ?", (ID,))
+    # result_reg = cur.fetchone()
+    # if (result_reg == None):
+    #     kb6 = InlineKeyboardButton(text = "Зарегистрироваться", callback_data="Зарегистрироваться")
+    #     ikb.add(kb6)
     if (is_admin):
         kb7 = InlineKeyboardButton(text = "Режим админа", callback_data="Режим админа")
         ikb.add(kb7)
@@ -98,11 +122,9 @@ def create_ikb(is_admin, ID):
 @dp.message_handler(commands = ['start'])
 async def start_commmand(message: types.Message):
     global ID
-    global video_start
-    global caption_start
     ID = message.from_user.id
     global is_admin
-    global is_reg
+    # global is_reg
     for i in id_admin_data:
         if ID == int(i):
             is_admin = True
@@ -132,13 +154,10 @@ async def start_commmand(message: types.Message):
     elif (res_type == 2):
         await bot.send_animation(chat_id = message.chat.id, animation =res_media, caption=res_caption, reply_markup=ikb)
 
-    # await bot.send_video(chat_id = message.chat.id, video=video_start, caption=caption_start, reply_markup=ikb)
-
 
 async def start_command_back(callback: types.CallbackQuery):
     global ID, is_admin
     ikb = create_ikb(is_admin, ID)
-
     cur.execute("SELECT type FROM start_media_info WHERE id = 1")
     res_type = cur.fetchone()[0]
     cur.execute("SELECT media FROM start_media_info WHERE id = 1")
@@ -152,7 +171,6 @@ async def start_command_back(callback: types.CallbackQuery):
     elif (res_type == 2):
         await callback.message.edit_media(types.InputMedia(media = res_media, type = 'animation', caption = res_caption), reply_markup=ikb)
 
-    # await callback.message.edit_media(types.InputMedia(media=video_start, type='video', caption=caption_start), reply_markup=ikb)
 
 
 
@@ -174,9 +192,6 @@ async def start_command_back2(callback: types.CallbackQuery):
     elif (res_type == 2):
         await bot.send_animation(chat_id=callback.message.chat.id, animation=res_media, caption=res_caption, reply_markup=ikb)
 
-    # await bot.send_video(callback.message.chat.id, video=video_start, caption=caption_start, reply_markup=ikb)
-
-
 
 async def ikbadmin_back(callback: types.CallbackQuery):
     cur.execute("SELECT type FROM start_media_info WHERE id = 1")
@@ -194,9 +209,6 @@ async def ikbadmin_back(callback: types.CallbackQuery):
     elif (res_type == 2):
         await callback.message.edit_media(types.InputMedia(media=res_media, type='animation', caption=res_caption),
                                           reply_markup=ikbadmin)
-    #
-    # await callback.message.edit_media(types.InputMedia(media=video_start, type='video', caption=caption_start), reply_markup=ikbadmin)
-    # return
 
 
 async def ikbadmin_back2(callback: types.CallbackQuery):
@@ -215,12 +227,10 @@ async def ikbadmin_back2(callback: types.CallbackQuery):
     elif (res_type == 2):
         await bot.send_animation(chat_id=callback.message.chat.id, animation=res_media, caption=res_caption,
                                  reply_markup=ikbadmin)
-    #
-    # await bot.send_video(callback.message.chat.id, video=video_start, caption=caption_start, reply_markup=ikbadmin)
-    # return
 
 @dp.callback_query_handler()
 async def cb_start(callback: types.CallbackQuery):
+    global is_admin, ID
     if callback.data == 'Турниры':
         try:
             cur.execute("SELECT COUNT(*) FROM photos")
@@ -253,71 +263,71 @@ async def cb_start(callback: types.CallbackQuery):
         except:
             await callback.answer("Попробуйте немного позже")
             await bot.send_message(chat_id = "340371976", text = "Ошибка загрузки изображения или описания в разделе акции. Загрузите другое изображение или описание.")
-    elif callback.data == 'Мой баланс':
-        async def your_balance(callback: types.CallbackQuery):
-            global ID
-            cur.execute("SELECT balance FROM users WHERE id = ?  ", (ID,))
-            user_balance = cur.fetchone()
-            if (user_balance == None):
-                await callback.message.answer("Зарегистрируйтесь, чтобы узнать баланс")
-            else:
-                await callback.message.delete()
-                await callback.bot.send_message(chat_id=callback.message.chat.id, text =f"Ваш баланс {user_balance[0]} рублей", reply_markup=ikb3)
-        await your_balance(callback)
+    # elif callback.data == 'Мой баланс':
+    #     async def your_balance(callback: types.CallbackQuery):
+    #         global ID
+    #         cur.execute("SELECT balance FROM users WHERE id = ?  ", (ID,))
+    #         user_balance = cur.fetchone()
+    #         if (user_balance == None):
+    #             await callback.message.answer("Зарегистрируйтесь, чтобы узнать баланс")
+    #         else:
+    #             await callback.message.delete()
+    #             await callback.bot.send_message(chat_id=callback.message.chat.id, text =f"Ваш баланс {user_balance[0]} рублей", reply_markup=ikb3)
+    #     await your_balance(callback)
 
-    elif callback.data == 'Зарегистрироваться':
-        global ID
-        cur.execute("INSERT INTO users (id) VALUES (?)", (ID,))
-        con.commit()
-        global is_reg
-        if (is_reg):
-            await callback.message.answer("Вы зарегистрированы")
-            return
-        else:
-            class REGISTRATION(StatesGroup):
-                name = State()
-                surname = State()
-                number = State()
-            await REGISTRATION.name.set()
-            await callback.message.answer("Введите свое имя")
-            @dp.message_handler(state = REGISTRATION.name)
-            async def reg_name(message: types.Message, state = FSMContext):
-                global ID
-                if message.text.isalpha() == True:
-                    cur.execute("UPDATE users SET name = ? WHERE id = ? ", (message.text, ID))
-                    con.commit()
-                    await message.answer("Введите свою фамилию")
-                    await REGISTRATION.next()
-                else:
-                    await message.answer("Введите имя в текстовом формате")
-                    return
-            @dp.message_handler(state = REGISTRATION.surname)
-            async def reg_surname(message: types.Message, state = FSMContext):
-                global ID
-                if message.text.isalpha() == True:
-                    cur.execute("UPDATE users SET surname = ? WHERE id = ? ", (message.text, ID))
-                    con.commit()
-                    await message.answer("Введите свой номер телефона")
-                    await REGISTRATION.next()
-                else:
-                    await message.answer("Введите фамилию в текстовом формате")
-                    return
-
-            @dp.message_handler(state = REGISTRATION.number)
-            async def reg_number(message: types.Message, state = FSMContext):
-                global ID
-                if message.text.isdigit() == True:
-                    global is_reg
-                    is_reg = True
-                    cur.execute("UPDATE users SET number = ? WHERE id = ? ", (message.text, ID))
-                    cur.execute("UPDATE users SET balance = 300 WHERE id = ? ", (ID,))
-                    con.commit()
-                    await message.answer("Вы успешно зарегистрировались!")
-                    await start_commmand(message)
-                    await state.finish()
-                else:
-                    await message.answer("Введите номер телефона цифрами")
-                    return
+    # elif callback.data == 'Зарегистрироваться':
+    #     global ID
+    #     cur.execute("INSERT INTO users (id) VALUES (?)", (ID,))
+    #     con.commit()
+    #     global is_reg
+    #     if (is_reg):
+    #         await callback.message.answer("Вы зарегистрированы")
+    #         return
+    #     else:
+    #         class REGISTRATION(StatesGroup):
+    #             name = State()
+    #             surname = State()
+    #             number = State()
+    #         await REGISTRATION.name.set()
+    #         await callback.message.answer("Введите свое имя")
+    #         @dp.message_handler(state = REGISTRATION.name)
+    #         async def reg_name(message: types.Message, state = FSMContext):
+    #             global ID
+    #             if message.text.isalpha() == True:
+    #                 cur.execute("UPDATE users SET name = ? WHERE id = ? ", (message.text, ID))
+    #                 con.commit()
+    #                 await message.answer("Введите свою фамилию")
+    #                 await REGISTRATION.next()
+    #             else:
+    #                 await message.answer("Введите имя в текстовом формате")
+    #                 return
+    #         @dp.message_handler(state = REGISTRATION.surname)
+    #         async def reg_surname(message: types.Message, state = FSMContext):
+    #             global ID
+    #             if message.text.isalpha() == True:
+    #                 cur.execute("UPDATE users SET surname = ? WHERE id = ? ", (message.text, ID))
+    #                 con.commit()
+    #                 await message.answer("Введите свой номер телефона")
+    #                 await REGISTRATION.next()
+    #             else:
+    #                 await message.answer("Введите фамилию в текстовом формате")
+    #                 return
+    #
+    #         @dp.message_handler(state = REGISTRATION.number)
+    #         async def reg_number(message: types.Message, state = FSMContext):
+    #             global ID
+    #             if message.text.isdigit() == True:
+    #                 global is_reg
+    #                 is_reg = True
+    #                 cur.execute("UPDATE users SET number = ? WHERE id = ? ", (message.text, ID))
+    #                 cur.execute("UPDATE users SET balance = 300 WHERE id = ? ", (ID,))
+    #                 con.commit()
+    #                 await message.answer("Вы успешно зарегистрировались!")
+    #                 await start_commmand(message)
+    #                 await state.finish()
+    #             else:
+    #                 await message.answer("Введите номер телефона цифрами")
+    #                 return
 
     elif callback.data == "Назад1":
         try:
@@ -781,20 +791,20 @@ async def cb_start(callback: types.CallbackQuery):
 
     elif callback.data == "Изменить изображение турниров":
         if is_admin:
-            class EditPhotoAdmin(StatesGroup):
+            class EditPhotoAdmin_TUR(StatesGroup):
                 photo = State()
 
-            await EditPhotoAdmin.photo.set()
+            await EditPhotoAdmin_TUR.photo.set()
             await callback.message.answer("Пришлите новое изображение.\n"
                                   "(если вы хотите отменить изменение изображения, введите 'отмена')")
 
-            @dp.message_handler(state=EditPhotoAdmin.photo, commands=['отмена'])
-            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditPhotoAdmin.photo)
+            @dp.message_handler(state=EditPhotoAdmin_TUR.photo, commands=['отмена'])
+            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditPhotoAdmin_TUR.photo)
             async def handle_otmena(message: types.Message, state: FSMContext):
                 await state.finish()
                 await message.answer("<b>Действие отменено</b>", reply_markup=ikbadmin, parse_mode='HTML')
 
-            @dp.message_handler(state=EditPhotoAdmin.photo, content_types=ContentType.PHOTO)
+            @dp.message_handler(state=EditPhotoAdmin_TUR.photo, content_types=ContentType.PHOTO)
             async def load_photo(message: types.Message, state: FSMContext):
                 photo_path_tur = message.photo[-1].file_id
                 cur.execute("INSERT INTO photos(url) VALUES (?)", (photo_path_tur,))
@@ -802,7 +812,7 @@ async def cb_start(callback: types.CallbackQuery):
                 await message.answer("<b>Фото успешно загружено!</b>", reply_markup=ikbadmin, parse_mode='HTML')
                 await state.finish()
 
-            @dp.message_handler(state=EditPhotoAdmin.photo, content_types=ContentType.ANY)
+            @dp.message_handler(state=EditPhotoAdmin_TUR.photo, content_types=ContentType.ANY)
             async def handle_non_text_content(message: types.Message, state: FSMContext):
                 await message.answer("Пожалуйста, пришлите изображение.\n"
                                      "(если вы хотите отменить изменение изображения, введите 'отмена')")
@@ -813,20 +823,20 @@ async def cb_start(callback: types.CallbackQuery):
 
     elif callback.data == "Изменить изображение акций":
         if is_admin:
-            class EditPhotoAdmin(StatesGroup):
+            class EditPhotoAdmin_ACT(StatesGroup):
                 photo = State()
 
-            await EditPhotoAdmin.photo.set()
+            await EditPhotoAdmin_ACT.photo.set()
             await callback.message.answer("Пришлите новое изображение.\n"
                                   "(если вы хотите отменить изменение изображения, введите 'отмена')")
 
-            @dp.message_handler(state=EditPhotoAdmin.photo, commands=['отмена'])
-            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditPhotoAdmin.photo)
+            @dp.message_handler(state=EditPhotoAdmin_ACT.photo, commands=['отмена'])
+            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditPhotoAdmin_ACT.photo)
             async def handle_otmena(message: types.Message, state: FSMContext):
                 await state.finish()
                 await message.answer("<b>Действие отменено</b>", reply_markup=ikbadmin, parse_mode='HTML')
 
-            @dp.message_handler(state=EditPhotoAdmin.photo)
+            @dp.message_handler(state=EditPhotoAdmin_ACT.photo, content_types= ContentType.PHOTO)
             async def load_photo(message: types.Message, state: FSMContext):
                 photo_path_akcii = message.photo[-1].file_id
                 cur.execute("INSERT INTO photos_akcii(url) VALUES (?)", (photo_path_akcii,))
@@ -834,7 +844,7 @@ async def cb_start(callback: types.CallbackQuery):
                 await message.answer("<b>Фото успешно загружено!</b>", reply_markup=ikbadmin, parse_mode='HTML')
                 await state.finish()
 
-            @dp.message_handler(state=EditPhotoAdmin.photo, content_types=ContentType.ANY)
+            @dp.message_handler(state=EditPhotoAdmin_ACT.photo, content_types=ContentType.ANY)
             async def handle_non_text_content(message: types.Message, state: FSMContext):
                 await message.answer("Пожалуйста, пришлите изображение.\n"
                                      "(если вы хотите отменить изменение изображения, введите 'отмена')")
@@ -845,19 +855,19 @@ async def cb_start(callback: types.CallbackQuery):
 
     elif callback.data == "Изменить описание турниров":
         if is_admin:
-            class EditCaptionAdmin(StatesGroup):
+            class EditCaptionAdmin_TUR(StatesGroup):
                 caption = State()
-            await EditCaptionAdmin.caption.set()
+            await EditCaptionAdmin_TUR.caption.set()
             await callback.message.answer("Пришлите новое описание.\n"
                                           "(если вы хотите отменить изменение описания, введите 'отмена')")
 
-            @dp.message_handler(state=EditCaptionAdmin.caption, commands=['отмена'])
-            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditCaptionAdmin.caption)
+            @dp.message_handler(state=EditCaptionAdmin_TUR.caption, commands=['отмена'])
+            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditCaptionAdmin_TUR.caption)
             async def handle_otmena_caption_tur(message: types.Message, state: FSMContext):
                 await state.finish()
                 await message.answer("<b>Действие отменено</b>", reply_markup=ikbadmin, parse_mode='HTML')
 
-            @dp.message_handler(state=EditCaptionAdmin.caption, content_types= ContentType.TEXT)
+            @dp.message_handler(state=EditCaptionAdmin_TUR.caption, content_types= ContentType.TEXT)
             async def load_caption_tur(message: types.Message, state: FSMContext):
                 photo_path_caption_tur = message.text
                 cur.execute("INSERT INTO caption_tur (caption) VALUES (?)", (photo_path_caption_tur,))
@@ -865,7 +875,7 @@ async def cb_start(callback: types.CallbackQuery):
                 await message.answer("<b>Описание успешно загружено!</b>", reply_markup=ikbadmin, parse_mode='HTML')
                 await state.finish()
 
-            @dp.message_handler(state = EditCaptionAdmin.caption, content_types=ContentType.ANY)
+            @dp.message_handler(state = EditCaptionAdmin_TUR.caption, content_types=ContentType.ANY)
             async def load_caption_tur_non_text(message: types.Message, state: FSMContext):
                 await message.answer(text = "Пожалуйста, пришлите описание в текстовом формате")
                 return
@@ -875,19 +885,19 @@ async def cb_start(callback: types.CallbackQuery):
 
     elif callback.data == "Изменить описание акций":
         if is_admin:
-            class EditCaptionAdmin(StatesGroup):
+            class EditCaptionAdmin_ACT(StatesGroup):
                 caption = State()
-            await EditCaptionAdmin.caption.set()
+            await EditCaptionAdmin_ACT.caption.set()
             await callback.message.answer("Пришлите новое описание.\n"
                                           "(если вы хотите отменить изменение описания, введите 'отмена')")
 
-            @dp.message_handler(state=EditCaptionAdmin.caption, commands=['отмена'])
-            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditCaptionAdmin.caption)
+            @dp.message_handler(state=EditCaptionAdmin_ACT.caption, commands=['отмена'])
+            @dp.message_handler(Text(equals='отмена', ignore_case=True), state=EditCaptionAdmin_ACT.caption)
             async def handle_otmena_caption_akcii(message: types.Message, state: FSMContext):
                 await state.finish()
                 await message.answer("<b>Действие отменено</b>", reply_markup=ikbadmin, parse_mode='HTML')
 
-            @dp.message_handler(state=EditCaptionAdmin.caption, content_types=ContentType.TEXT)
+            @dp.message_handler(state=EditCaptionAdmin_ACT.caption, content_types=ContentType.TEXT)
             async def load_caption_akcii(message: types.Message, state: FSMContext):
                 photo_path_caption_akcii = message.text
                 cur.execute("INSERT INTO caption_akcii (caption) VALUES (?)", (photo_path_caption_akcii,))
@@ -895,7 +905,7 @@ async def cb_start(callback: types.CallbackQuery):
                 await message.answer("<b>Описание успешно загружено!</b>", reply_markup=ikbadmin, parse_mode='HTML')
                 await state.finish()
 
-            @dp.message_handler(state=EditCaptionAdmin.caption, content_types=ContentType.ANY)
+            @dp.message_handler(state=EditCaptionAdmin_ACT.caption, content_types=ContentType.ANY)
             async def load_caption_tur_non_text(message: types.Message, state: FSMContext):
                 await message.answer(text="Пожалуйста, пришлите описание в текстовом формате")
                 return
